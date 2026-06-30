@@ -37,7 +37,7 @@ fund_df = pd.DataFrame(fund_details)
 print("\nFund Details")
 print(fund_df)
 
-fund_df.to_csv("data/processed/fund_master.csv", index=False)
+fund_df.to_csv("data/raw/all_schemes_nav.csv", index=False)
 
 print("\nFund master saved successfully!")
 print("\nUnique Fund Houses")
