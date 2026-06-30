@@ -1,114 +1,64 @@
-# data_ingestion.py
-# Loads all CSV files, prints their shape/dtypes/head
-# Explores fund data and checks data quality
-
-import pandas as pd
 import os
+import pandas as pd
 
-RAW_FOLDER = "data/raw"
+DATA_FOLDER = "data/raw"
 
-print("=" * 60)
-print("STEP 3: Loading and Profiling All CSV Datasets")
-print("=" * 60)
+csv_files = [file for file in os.listdir(DATA_FOLDER) if file.endswith(".csv")]
 
+if not csv_files:
+    print("No CSV files found.")
+    exit()
 
-# ── Helper function ─────────────────────────────────────────────
-def profile_dataset(filename):
-    """
-    For each CSV file, prints:
-    - Shape (rows × columns)
-    - Data types of each column
-    - First 5 rows
-    - Any missing values or duplicates
-    """
-    filepath = os.path.join(RAW_FOLDER, filename)
+quality_report = []
 
-    # Check if file exists
-    if not os.path.exists(filepath):
-        print(f"\nSKIPPED: {filename} not found")
-        return None
+for file in csv_files:
 
-    # Load the CSV
-    df = pd.read_csv(filepath)
+    file_path = os.path.join(DATA_FOLDER, file)
 
-    print(f"\n{'─'*60}")
-    print(f"FILE: {filename}")
-    print(f"{'─'*60}")
+    df = pd.read_csv(file_path)
 
-    # 1. Shape
-    print(f"\nShape: {df.shape[0]} rows × {df.shape[1]} columns")
+    print("=" * 70)
+    print(f"Dataset : {file}")
+    print("=" * 70)
 
-    # 2. Data types
-    print("\nColumn Data Types:")
-    for col in df.columns:
-        print(f"  {col:25} → {df[col].dtype}")
+    print("\nShape:")
+    print(df.shape)
 
-    # 3. First 5 rows
-    print("\nFirst 5 rows:")
+    print("\nData Types:")
+    print(df.dtypes)
+
+    print("\nFirst 5 Rows:")
     print(df.head())
 
-    # 4. Anomaly check
-    nulls = df.isnull().sum().sum()
-    dups  = df.duplicated().sum()
+    print("\nMissing Values:")
+    print(df.isnull().sum())
 
-    print(f"\nNull values  : {nulls}")
-    print(f"Duplicate rows: {dups}")
+    duplicates = df.duplicated().sum()
+    print("\nDuplicate Rows:")
+    print(duplicates)
 
-    if nulls > 0:
-        print("  ⚠ WARNING: Null values found!")
-        print(df.isnull().sum()[df.isnull().sum() > 0])
+    print("\nColumn Information:")
+    df.info()
 
-    if dups > 0:
-        print(f"  ⚠ WARNING: {dups} duplicate rows found!")
+    print("\nSummary Statistics:")
+    print(df.describe())
 
-    return df
+    quality_report.append({
+        "Dataset": file,
+        "Rows": df.shape[0],
+        "Columns": df.shape[1],
+        "Missing Values": int(df.isnull().sum().sum()),
+        "Duplicate Rows": int(duplicates)
+    })
 
+summary_df = pd.DataFrame(quality_report)
 
-# ── Load all CSV files created by live_nav_fetch.py ────────────
-csv_files = [f for f in os.listdir(RAW_FOLDER) if f.endswith(".csv")]
-print(f"\nFound {len(csv_files)} CSV files in {RAW_FOLDER}/")
+print("\n" + "=" * 70)
+print("DATA QUALITY SUMMARY")
+print("=" * 70)
+print(summary_df)
 
-datasets = {}
-for fname in csv_files:
-    key = fname.replace(".csv", "")
-    datasets[key] = profile_dataset(fname)
+os.makedirs("reports", exist_ok=True)
+summary_df.to_csv("reports/data_quality_summary.csv", index=False)
 
-
-# ── STEP 6: Explore the combined NAV data ──────────────────────
-print("\n" + "=" * 60)
-print("STEP 6: Exploring the Data")
-print("=" * 60)
-
-combined_key = "all_schemes_nav"
-if combined_key in datasets and datasets[combined_key] is not None:
-    df = datasets[combined_key]
-
-    print(f"\nUnique Fund Houses: {df['fund_house'].nunique()}")
-    for fh in df["fund_house"].unique():
-        print(f"  • {fh}")
-
-    print(f"\nUnique Schemes: {df['scheme_name'].nunique()}")
-    for s in df["scheme_name"].unique():
-        print(f"  • {s}")
-
-    print(f"\nDate range: {df['date'].min()} to {df['date'].max()}")
-    print(f"Total NAV records: {len(df)}")
-
-    print("\nLatest NAV for each scheme:")
-    latest = df.groupby("scheme_name").first()[["date", "nav"]]
-    print(latest)
-
-
-# ── STEP 7: Data Quality Summary ───────────────────────────────
-print("\n" + "=" * 60)
-print("STEP 7: Data Quality Summary")
-print("=" * 60)
-
-for name, df in datasets.items():
-    if df is not None:
-        nulls = df.isnull().sum().sum()
-        dups  = df.duplicated().sum()
-        flag  = "✓" if (nulls == 0 and dups == 0) else "⚠"
-        print(f"  {flag} {name:40} nulls={nulls}  dups={dups}")
-
-print("\n✅ data_ingestion.py completed!")
+print("\nData quality summary saved to reports/data_quality_summary.csv")

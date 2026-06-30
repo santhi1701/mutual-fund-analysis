@@ -1,0 +1,15 @@
+Dataset,Rows,Columns,Missing Values,Duplicate Rows
+all_schemes_nav.csv,19882,5,0,0
+axis_bluechip.csv,3584,2,0,0
+hdfc_top100.csv,3110,2,0,0
+hdfc_top100_nav.csv,3110,2,0,0
+icici_bluechip.csv,3326,2,0,0
+kotak_bluechip.csv,3320,2,0,0
+nav_Axis_Bluechip_Direct.csv,3579,5,0,0
+nav_HDFC_Top100_Direct.csv,3105,5,0,0
+nav_ICICI_Bluechip_Direct.csv,3321,5,0,0
+nav_Kotak_Bluechip_Direct.csv,3315,5,0,0
+nav_Nippon_LargeCap_Direct.csv,3312,5,0,0
+nav_SBI_Bluechip_Direct.csv,3250,5,0,0
+nippon_largecap.csv,3317,2,0,0
+sbi_bluechip.csv,3255,2,0,0
